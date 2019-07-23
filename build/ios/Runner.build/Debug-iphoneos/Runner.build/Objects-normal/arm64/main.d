@@ -1,0 +1,19 @@
+dependencies: \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Runner/main.m \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Modules/module.modulemap \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterTexture.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterPlugin.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterMacros.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterEngine.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterDartProject.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterBinaryMessenger.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterViewController.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterPluginAppLifeCycleDelegate.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterPlatformViews.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterHeadlessDartRunner.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterCodecs.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterChannels.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterCallbackCache.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/FlutterAppDelegate.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Flutter/Flutter.framework/Headers/Flutter.h \
+  /Users/staskalishenko/Flutter/monobank_info/ios/Runner/AppDelegate.h
