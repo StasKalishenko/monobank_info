@@ -1,6 +1,6 @@
 # monobank_info
 
-Example of Flutter project that demonstrates how to get information about your Monobank accounts.
+Example of Flutter project that demonstrates how to get info about your Monobank accounts.
 
 This app can be useful if you have several accounts in Monobank (for instance, in different currencies) and want to know total balance, control every money transfer on them.
 
