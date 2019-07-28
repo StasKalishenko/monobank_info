@@ -12,6 +12,7 @@ class MonobankAPI {
 
   final String myToken = "XXXXX";
   final String wifeToken = "YYYYY";
+  
   final String baseUrl = "https://api.monobank.ua/";
   final String clientInfoPath = "personal/client-info";
   final String currencyPath = "bank/currency";
