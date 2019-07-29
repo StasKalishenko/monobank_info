@@ -4,8 +4,7 @@ Example of Flutter project that demonstrates how to get info about your Monobank
 
 This app can be useful if you have several accounts in Monobank (for instance, in different currencies) and want to know total balance, control every money transfer on them.
 
-![](chart_page.png)
-<img src="chart_page.png" width="100" height="100">
+<img src="chart_page.png" width="300">
 
 ## Getting Started
 
