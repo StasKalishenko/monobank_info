@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:intl/intl.dart';
 import 'package:side_header_list_view/side_header_list_view.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:carousel_widget/carousel_widget.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'statementInfo.dart';
 import 'list.dart';
 import 'monobank_api.dart';
 import 'chart.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:carousel_widget/carousel_widget.dart';
+import 'db.dart';
 
 class HomePageState extends State<HomePage> {
   final String _progressText = "Loading...";
@@ -252,27 +253,43 @@ class HomePageState extends State<HomePage> {
     ];
   }
 
-  _updateChartData() {
+  _loadChartData() {
     setState(() {
       _chartData =
           new DatumLegendWithMeasures(_calculateChartData(), animate: true);
     });
   }
 
+  _loadBalance() async {
+    MonobankAPI api = new MonobankAPI();
+    num balance = await api.getTotalBalance(_balanceDetails);
+    final formatter = NumberFormat("#,###.##", "uk_UA");
+    String formattedBalance = formatter.format(balance) + " ₴";
+    setState(() {
+      _totalBalance = formattedBalance;
+    });
+  }
+
+  _loadLocalData() async {
+    List<StatementInfo> localStatements = await DBProvider.db.getStatements();
+    setState(() {
+      _allStatements = localStatements;
+      _loadFilteredData();
+      _loadChartData();
+      _dataLoaded = true;
+    });
+  }
+
   Future<Null> _loadData() async {
     MonobankAPI api = new MonobankAPI();
     await api.getCurrencies();
-    num balance = await api.getTotalBalance(_balanceDetails);
+    _loadBalance();
     List<StatementInfo> statements = await api.getStatements();
     setState(() {
-      if (statements.length > 0) {
-        _allStatements = statements;
-        final formatter = NumberFormat("#,###.##", "uk_UA");
-        String formattedBalance = formatter.format(balance);
-        _totalBalance = formattedBalance + " ₴";
-      }
+      _allStatements = statements;
       _loadFilteredData();
-      _updateChartData();
+      _loadChartData();
+      _saveStatements();
       _dataLoaded = true;
     });
   }
@@ -286,9 +303,17 @@ class HomePageState extends State<HomePage> {
     return _loadData();
   }
 
+  _saveStatements() async {
+    Set<StatementInfo> set = Set.from(_allStatements);
+    set.forEach((StatementInfo statement) {
+      DBProvider.db.addStatement(statement);
+    });
+  }
+
   @override
   initState() {
     super.initState();
+    _loadLocalData();
     _loadData();
     _controller.addListener(_onFilterChanged);
   }
