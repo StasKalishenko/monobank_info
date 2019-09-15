@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:side_header_list_view/side_header_list_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:carousel_widget/carousel_widget.dart';
+import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'statementInfo.dart';
@@ -18,6 +19,7 @@ class HomePageState extends State<HomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   final TextEditingController _controller = new TextEditingController();
+  final String _defaultTitle = "Monobank Analytics";
 
   var _balanceDetails = {};
 
@@ -29,6 +31,8 @@ class HomePageState extends State<HomePage> {
   String _filter = "";
   bool _dataLoaded = false;
   int _monthBalance = 0;
+  DateTime _statementsMonth = new DateTime.now();
+  String _title = "";
 
   String _getFormattedBalanceDetails() {
     List<String> balanceDetails = new List<String>();
@@ -167,7 +171,12 @@ class HomePageState extends State<HomePage> {
     var toRemove = [];
     set.forEach((StatementInfo statement) {
       String description = statement.description.toLowerCase();
-      String mcc = new Utils().getMCC(statement.mcc.toString()).toLowerCase();
+      String mcc = new Utils().getMCC(statement.mcc.toString());
+      if (mcc == null) {
+        mcc = "";
+      } else {
+        mcc = mcc.toLowerCase();
+      }
       String filterValue = _filter.toLowerCase();
       if (!description.contains(filterValue) && !mcc.contains(filterValue)) {
         toRemove.add(statement);
@@ -232,14 +241,17 @@ class HomePageState extends State<HomePage> {
     Set<StatementInfo> set = Set.from(_allStatements);
     double total = 0;
     set.forEach((StatementInfo statement) {
-      String mcc = new Utils().getMCC(statement.mcc.toString()).toLowerCase();
-      double amount = statement.amount / 100;
-      if (amount < 0) {
-        amount = -1 * amount;
-        groupedStatements[mcc] = groupedStatements[mcc] != null
-            ? groupedStatements[mcc] + amount
-            : amount;
-        total += amount;
+      String mcc = new Utils().getMCC(statement.mcc.toString());
+      if (mcc != null) {
+        mcc = mcc.toLowerCase();
+        double amount = statement.amount / 100;
+        if (amount < 0) {
+          amount = -1 * amount;
+          groupedStatements[mcc] = groupedStatements[mcc] != null
+              ? groupedStatements[mcc] + amount
+              : amount;
+          total += amount;
+        }
       }
     });
     List<Expenses> data = _getChartData(groupedStatements, total);
@@ -284,7 +296,7 @@ class HomePageState extends State<HomePage> {
     MonobankAPI api = new MonobankAPI();
     await api.getCurrencies();
     _loadBalance();
-    List<StatementInfo> statements = await api.getStatements();
+    List<StatementInfo> statements = await api.getStatements(_statementsMonth);
     setState(() {
       _allStatements = statements;
       _loadFilteredData();
@@ -312,6 +324,7 @@ class HomePageState extends State<HomePage> {
 
   @override
   initState() {
+    _title = _defaultTitle;
     super.initState();
     _loadLocalData();
     _loadData();
@@ -322,18 +335,34 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Monobank Analytics'),
+        title: Text('$_title'),
         actions: <Widget>[
           Padding(
               padding: EdgeInsets.only(top: 18, right: 5),
               child: Text('$_monthBalance ₴',
-                  style: TextStyle(color: Colors.white, fontSize: 20.0)))
+                  style: TextStyle(color: Colors.white, fontSize: 20.0))),
         ],
-        leading: new IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+        leading: IconButton(
+            icon: const Icon(Icons.date_range),
+            tooltip: 'Month',
             onPressed: () {
-              _refreshIndicatorKey.currentState.show();
+              DatePicker.showDatePicker(context,
+                  minDateTime: DateTime(2019, 1, 1),
+                  maxDateTime: DateTime(2022, 12, 31),
+                  initialDateTime: DateTime.now(),
+                  dateFormat: 'yyyy-MM',
+                  locale: DateTimePickerLocale.en_us,
+                  pickerMode: DateTimePickerMode.date,
+                  pickerTheme: DateTimePickerTheme.Default,
+                  onConfirm: (date, List<int> selectedIndex) {
+                setState(() {
+                  _statementsMonth = date;
+                  var formatter = new DateFormat('MMM');
+                  String formattedTime = formatter.format(date);
+                  _title = _defaultTitle + " (" + formattedTime + ")";
+                  _refresh();
+                });
+              });
             }),
       ),
       body: _getBody(),

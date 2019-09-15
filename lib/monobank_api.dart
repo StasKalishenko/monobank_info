@@ -10,8 +10,8 @@ class MonobankAPI {
 
   MonobankAPI._getInstance();
 
-  final String myToken = "XXXXX";
-  final String wifeToken = "YYYYY";
+  final String myToken = "";
+  final String wifeToken = "";
   
   final String baseUrl = "https://api.monobank.ua/";
   final String clientInfoPath = "personal/client-info";
@@ -67,8 +67,8 @@ class MonobankAPI {
     }
   }
 
-  Future<List<StatementInfo>> getStatementInfo(String token) async {
-    DateTime now = new DateTime.now();
+  Future<List<StatementInfo>> getStatementInfo(String token, DateTime date) async {
+    DateTime now = date;
     DateTime from = new DateTime(now.year, now.month, 1);
     DateTime to = new DateTime(now.year, now.month + 1, 1);
     to = new DateTime(to.year, to.month, to.day - 1);
@@ -95,9 +95,9 @@ class MonobankAPI {
     }
   }
 
-  Future<List<StatementInfo>> getStatements() async {
-    var myStatements = await getStatementInfo(myToken);
-    var wifeStatements = await getStatementInfo(wifeToken);
+  Future<List<StatementInfo>> getStatements(DateTime date) async {
+    var myStatements = await getStatementInfo(myToken, date);
+    var wifeStatements = await getStatementInfo(wifeToken, date);
     List<StatementInfo> result = new List.from(myStatements)
       ..addAll(wifeStatements);
     result..sort((a, b) => b.time.compareTo(a.time));

@@ -49,6 +49,9 @@ class ListBuilder {
     String title = statement.description;
     String amount = (statement.amount / 100).toStringAsFixed(0);
     String subTitle = new Utils().getMCC(statement.mcc.toString());
+    if (subTitle == null) {
+      subTitle = "";
+    }
     if (statement.currencyCode != 980) {
       String currencySymbol =
           new Utils().getCurrencySymbolByISO(statement.currencyCode);
