@@ -24,7 +24,7 @@ class DatumLegendWithMeasures extends StatelessWidget {
           showMeasures: true,
           legendDefaultMeasure: charts.LegendDefaultMeasure.firstValue,
           measureFormatter: (num value) {
-            return value == null ? '-' : '(${value}%)';
+            return value == null ? '-' : '($value%)';
           },
         ),
       ],

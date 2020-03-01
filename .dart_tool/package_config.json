@@ -20,6 +20,12 @@
       "languageVersion": "2.0"
     },
     {
+      "name": "bloc",
+      "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/bloc-3.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
+    },
+    {
       "name": "boolean_selector",
       "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/boolean_selector-1.0.5",
       "packageUri": "lib/",
@@ -78,6 +84,12 @@
       "rootUri": "file:///Library/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "2.2"
+    },
+    {
+      "name": "flutter_bloc",
+      "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_bloc-3.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
     },
     {
       "name": "flutter_cupertino_date_picker",
@@ -140,6 +152,12 @@
       "languageVersion": "1.12"
     },
     {
+      "name": "nested",
+      "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/nested-0.0.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
       "name": "path",
       "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/path-1.6.4",
       "packageUri": "lib/",
@@ -164,10 +182,22 @@
       "languageVersion": "2.0"
     },
     {
+      "name": "provider",
+      "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/provider-4.0.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
+    },
+    {
       "name": "quiver",
       "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/quiver-2.0.5",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "rxdart",
+      "rootUri": "file:///Library/flutter/.pub-cache/hosted/pub.dartlang.org/rxdart-0.23.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.6"
     },
     {
       "name": "side_header_list_view",
@@ -260,7 +290,7 @@
       "languageVersion": "2.1"
     }
   ],
-  "generated": "2020-03-01T17:46:06.086664Z",
+  "generated": "2020-03-01T17:49:36.227203Z",
   "generator": "pub",
   "generatorVersion": "2.7.0"
 }

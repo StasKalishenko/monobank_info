@@ -49,7 +49,7 @@ class MonobankAPI {
     }
   }
 
-  Future<void> getCurrencies() async {
+  Future<Object> getCurrencies() async {
     final response = await http.get(baseUrl + currencyPath);
     if (response.statusCode == 200) {
       List<Object> currencies = json.decode(response.body);
@@ -60,9 +60,12 @@ class MonobankAPI {
           _currencies.addAll({info.currencyCodeA: info.rateBuy});
         }
       }
+      return _currencies;
     } else {
       if (response.statusCode != 429) {
         throw Exception('Failed to load currencies');
+      } else {
+        return _currencies;
       }
     }
   }
@@ -71,7 +74,6 @@ class MonobankAPI {
     DateTime now = date;
     DateTime from = new DateTime(now.year, now.month, 1);
     DateTime to = new DateTime(now.year, now.month + 1, 1);
-    to = new DateTime(to.year, to.month, to.day - 1);
     String url = baseUrl +
         statementInfoPath +
         "0/" +
@@ -104,13 +106,12 @@ class MonobankAPI {
     return result;
   }
 
-  Future<num> getTotalBalance(var balanceDetails) async {
+  Future loadBalances(var _balanceDetails) async {
     MonobankAPI api = new MonobankAPI();
-    num myBalance =
-        await api.getMonobankAccountBalance(api.myToken, balanceDetails);
-    num wifeBalance =
-        await api.getMonobankAccountBalance(api.wifeToken, balanceDetails);
-    return myBalance + wifeBalance;
+    var futures = List<Future>();
+    futures.add(api.getMonobankAccountBalance(api.myToken, _balanceDetails));
+    futures.add(api.getMonobankAccountBalance(api.wifeToken, _balanceDetails));
+    await Future.wait(futures);
   }
 
 }

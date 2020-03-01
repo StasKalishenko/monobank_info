@@ -5,12 +5,19 @@ import 'package:side_header_list_view/side_header_list_view.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:carousel_widget/carousel_widget.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/hryvnia_balance/hryvnia_balance_bloc.dart';
+import 'bloc/hryvnia_balance/hryvnia_balance_events.dart';
+import 'bloc/hryvnia_balance/hryvnia_balance_widget.dart';
+import 'bloc/total_balance/total_balance_bloc.dart';
+import 'bloc/total_balance/total_balance_events.dart';
+import 'bloc/total_balance/total_balance_widget.dart';
+import 'bloc/chart/chart.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'statementInfo.dart';
 import 'list.dart';
 import 'monobank_api.dart';
-import 'chart.dart';
 import 'db.dart';
 
 class HomePageState extends State<HomePage> {
@@ -19,7 +26,7 @@ class HomePageState extends State<HomePage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   final TextEditingController _controller = new TextEditingController();
-  final String _defaultTitle = "Monobank Analytics";
+  final String _defaultTitle = "Analytics";
 
   var _balanceDetails = {};
 
@@ -27,42 +34,13 @@ class HomePageState extends State<HomePage> {
   List<StatementInfo> _allStatements = [];
   List<StatementInfo> _filteredStatements = [];
   List<StatementInfo> _chartStatements = [];
-  String _totalBalance = "";
+
+  TotalBalanceBloc _totalBloc;
+
   String _filter = "";
-  bool _dataLoaded = false;
-  int _monthBalance = 0;
-  DateTime _statementsMonth = new DateTime.now();
   String _title = "";
-
-  String _getFormattedBalanceDetails() {
-    List<String> balanceDetails = new List<String>();
-    _balanceDetails.forEach((key, item) {
-      balanceDetails.add(key);
-      for (var i = 0; i < item.length; i++) {
-        var account = item[i];
-        balanceDetails.add(account["balance"].toStringAsFixed(2) +
-            " " +
-            new Utils().getCurrencyByISO(account["currencyCode"]));
-      }
-      balanceDetails.add('\n');
-    });
-    return balanceDetails.join('\n');
-  }
-
-  _showBalanceDetails() {
-    String result = _getFormattedBalanceDetails();
-    Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (BuildContext context) {
-      return Scaffold(
-          appBar: AppBar(
-            title: Text("Balance details"),
-          ),
-          body: Padding(
-              padding: EdgeInsets.all(14),
-              child: Text('$result',
-                  style: TextStyle(color: Colors.black, fontSize: 14.0))));
-    }));
-  }
+  DateTime _statementsMonth = new DateTime.now();
+  bool _dataLoaded = false;
 
   Widget _buildList() {
     ListBuilder builder = new ListBuilder();
@@ -93,45 +71,17 @@ class HomePageState extends State<HomePage> {
             hintStyle: new TextStyle(color: Colors.grey.shade400)));
   }
 
-  BoxDecoration _getDefaultBoxDecoration() {
-    return new BoxDecoration(
-        border: Border(
-          bottom: BorderSide(width: 0.5, color: Colors.grey.shade400),
-        ),
-        color: Colors.grey[50]);
-  }
-
-  Widget _buildTotalBalanceLabel() {
-    return FlatButton(
-        onPressed: _showBalanceDetails,
-        child: Text('Balance: $_totalBalance',
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold)));
-  }
-
-  Widget _buildTotalBalanceContainer() {
-    return Container(
-        decoration: _getDefaultBoxDecoration(),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              _buildTotalBalanceLabel(),
-              IconButton(
-                  icon: Icon(Icons.arrow_forward),
-                  iconSize: 26,
-                  color: Colors.grey.shade800,
-                  onPressed: _showBalanceDetails)
-            ]));
-  }
-
   Widget _buildChartPage() {
     return Fragment(
         color: Colors.grey[50],
         child: Column(children: <Widget>[
-          _buildTotalBalanceContainer(),
+          BlocProvider(
+            create: (context) {
+              _totalBloc = TotalBalanceBloc();
+              return _totalBloc;
+            },
+            child: TotalBalanceWidget(),
+          ),
           Expanded(
               child: Container(
                   decoration: new BoxDecoration(color: Colors.white),
@@ -180,8 +130,6 @@ class HomePageState extends State<HomePage> {
       String filterValue = _filter.toLowerCase();
       if (!description.contains(filterValue) && !mcc.contains(filterValue)) {
         toRemove.add(statement);
-      } else {
-        _monthBalance += (statement.amount / 100).round();
       }
     });
     _filteredStatements.removeWhere((e) => toRemove.contains(e));
@@ -195,21 +143,11 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  _calcMonthBalance() {
-    Set<StatementInfo> set = Set.from(_allStatements);
-    set.forEach((StatementInfo statement) {
-      _monthBalance += (statement.amount / 100).round();
-    });
-  }
-
   _loadFilteredData() {
-    _monthBalance = 0;
     setState(() {
       _copyAllStatements(_filteredStatements);
       if (_filter != "") {
         _filterStatements();
-      } else {
-        _calcMonthBalance();
       }
     });
   }
@@ -272,16 +210,6 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  _loadBalance() async {
-    MonobankAPI api = new MonobankAPI();
-    num balance = await api.getTotalBalance(_balanceDetails);
-    final formatter = NumberFormat("#,###.##", "uk_UA");
-    String formattedBalance = formatter.format(balance) + " ₴";
-    setState(() {
-      _totalBalance = formattedBalance;
-    });
-  }
-
   _loadLocalData() async {
     List<StatementInfo> localStatements = await DBProvider.db.getStatements();
     setState(() {
@@ -294,8 +222,8 @@ class HomePageState extends State<HomePage> {
 
   Future<Null> _loadData() async {
     MonobankAPI api = new MonobankAPI();
-    await api.getCurrencies();
-    _loadBalance();
+    await api.loadBalances(_balanceDetails);
+    _totalBloc.add(TotalBalanceLoadEvent(_balanceDetails));
     List<StatementInfo> statements = await api.getStatements(_statementsMonth);
     setState(() {
       _allStatements = statements;
@@ -337,10 +265,14 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('$_title'),
         actions: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(top: 18, right: 5),
-              child: Text('$_monthBalance ₴',
-                  style: TextStyle(color: Colors.white, fontSize: 20.0))),
+          BlocProvider(
+            create: (context) {
+              var bloc = HryvniaBalanceBloc();
+              bloc.add(HryvniaBalanceRefreshEvent());
+              return bloc;
+            },
+            child: HryvniaBalanceWidget(),
+          )
         ],
         leading: IconButton(
             icon: const Icon(Icons.date_range),
@@ -348,7 +280,7 @@ class HomePageState extends State<HomePage> {
             onPressed: () {
               DatePicker.showDatePicker(context,
                   minDateTime: DateTime(2019, 1, 1),
-                  maxDateTime: DateTime(2022, 12, 31),
+                  maxDateTime: DateTime(2099, 12, 31),
                   initialDateTime: DateTime.now(),
                   dateFormat: 'yyyy-MM',
                   locale: DateTimePickerLocale.en_us,
