@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:monobank_info/bloc/chart/chart_bloc.dart';
+import 'package:monobank_info/bloc/chart/chart_events.dart';
 import 'package:progress_indicators/progress_indicators.dart';
 import 'package:intl/intl.dart';
 import 'package:side_header_list_view/side_header_list_view.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:carousel_widget/carousel_widget.dart';
 import 'package:flutter_cupertino_date_picker/flutter_cupertino_date_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/chart/chart_widget.dart';
 import 'bloc/hryvnia_balance/hryvnia_balance_bloc.dart';
 import 'bloc/hryvnia_balance/hryvnia_balance_events.dart';
 import 'bloc/hryvnia_balance/hryvnia_balance_widget.dart';
 import 'bloc/total_balance/total_balance_bloc.dart';
 import 'bloc/total_balance/total_balance_events.dart';
 import 'bloc/total_balance/total_balance_widget.dart';
-import 'bloc/chart/chart.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'statementInfo.dart';
@@ -22,21 +23,16 @@ import 'db.dart';
 
 class HomePageState extends State<HomePage> {
   final String _progressText = "Loading...";
-  final int _truncLimit = 30;
+  final String _defaultTitle = "Analytics";
+  final String _searchHint = "Search";
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   final TextEditingController _controller = new TextEditingController();
-  final String _defaultTitle = "Analytics";
-
-  var _balanceDetails = {};
-
-  DatumLegendWithMeasures _chartData;
+  
   List<StatementInfo> _allStatements = [];
   List<StatementInfo> _filteredStatements = [];
-  List<StatementInfo> _chartStatements = [];
-
   TotalBalanceBloc _totalBloc;
-
+  ChartBloc _chartBloc = new ChartBloc();
   String _filter = "";
   String _title = "";
   DateTime _statementsMonth = new DateTime.now();
@@ -67,7 +63,7 @@ class HomePageState extends State<HomePage> {
             ),
             prefixIcon: new Icon(Icons.search, color: Colors.black),
             contentPadding: const EdgeInsets.all(14.0),
-            hintText: "Search",
+            hintText: _searchHint,
             hintStyle: new TextStyle(color: Colors.grey.shade400)));
   }
 
@@ -85,7 +81,12 @@ class HomePageState extends State<HomePage> {
           Expanded(
               child: Container(
                   decoration: new BoxDecoration(color: Colors.white),
-                  child: _chartData)),
+                  child: BlocProvider(
+                    create: (context) {
+                      return _chartBloc;
+                    },
+                    child: ChartWidget(),
+                  ))),
         ]));
   }
 
@@ -152,62 +153,8 @@ class HomePageState extends State<HomePage> {
     });
   }
 
-  List<Expenses> _getChartData(groupedData, total) {
-    List<Expenses> data = [];
-    int totalPercent = 0;
-    groupedData.forEach((mcc, amount) {
-      int percent = ((amount / total) * 100).round();
-      if (mcc.length > _truncLimit) {
-        mcc = mcc.substring(0, _truncLimit - 3) + "...";
-      }
-      if (percent > 0) {
-        data.add(
-            new Expenses(mcc + " " + amount.toStringAsFixed(2) + "₴", percent));
-        totalPercent += percent;
-      }
-    });
-    if (totalPercent < 100) {
-      data.add(new Expenses("другое", 100 - totalPercent));
-    }
-    data..sort((a, b) => b.value.compareTo(a.value));
-    return data;
-  }
-
-  List<charts.Series<Expenses, String>> _calculateChartData() {
-    _copyAllStatements(_chartStatements);
-    var groupedStatements = {};
-    Set<StatementInfo> set = Set.from(_allStatements);
-    double total = 0;
-    set.forEach((StatementInfo statement) {
-      String mcc = new Utils().getMCC(statement.mcc.toString());
-      if (mcc != null) {
-        mcc = mcc.toLowerCase();
-        double amount = statement.amount / 100;
-        if (amount < 0) {
-          amount = -1 * amount;
-          groupedStatements[mcc] = groupedStatements[mcc] != null
-              ? groupedStatements[mcc] + amount
-              : amount;
-          total += amount;
-        }
-      }
-    });
-    List<Expenses> data = _getChartData(groupedStatements, total);
-    return [
-      new charts.Series<Expenses, String>(
-        id: 'Expenses',
-        domainFn: (Expenses expenses, _) => expenses.mcc,
-        measureFn: (Expenses expenses, _) => expenses.value,
-        data: data,
-      )
-    ];
-  }
-
   _loadChartData() {
-    setState(() {
-      _chartData =
-          new DatumLegendWithMeasures(_calculateChartData(), animate: true);
-    });
+    _chartBloc.add(ChartLoadEvent(_allStatements));
   }
 
   _loadLocalData() async {
@@ -222,6 +169,7 @@ class HomePageState extends State<HomePage> {
 
   Future<Null> _loadData() async {
     MonobankAPI api = new MonobankAPI();
+    var _balanceDetails = {};
     await api.loadBalances(_balanceDetails);
     _totalBloc.add(TotalBalanceLoadEvent(_balanceDetails));
     List<StatementInfo> statements = await api.getStatements(_statementsMonth);
