@@ -10,8 +10,8 @@ class MonobankAPI {
 
   MonobankAPI._getInstance();
 
-  final String myToken = "uP3ajQfzlAwKWSq5XWst64RIok6ghqG-vo5juQzJYiJQ";
-  final String wifeToken = "uTrYyyI8i7H4sxo13z74qSbFmaCWSLCIc9jwZwq_wlas";
+  final String myToken = "";
+  final String wifeToken = "";
   
   final String baseUrl = "https://api.monobank.ua/";
   final String clientInfoPath = "personal/client-info";
