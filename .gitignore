@@ -2,3 +2,4 @@
 ios
 android
 ios/Flutter/Flutter.framework/Flutter
+lib/monobank_api.dart
