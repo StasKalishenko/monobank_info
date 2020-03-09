@@ -32,7 +32,7 @@ class HomePageState extends State<HomePage> {
 
   List<StatementInfo> _allStatements = [];
   List<StatementInfo> _filteredStatements = [];
-  TotalBalanceBloc _totalBloc;
+  TotalBalanceBloc _totalBloc = TotalBalanceBloc();
   ChartBloc _chartBloc = new ChartBloc();
   StatementsFilterBloc _statementsFilterBloc = StatementsFilterBloc();
   String _title = "";
@@ -153,7 +153,6 @@ class HomePageState extends State<HomePage> {
         child: Column(children: <Widget>[
           BlocProvider(
             create: (context) {
-              _totalBloc = TotalBalanceBloc();
               return _totalBloc;
             },
             child: TotalBalanceWidget(),
